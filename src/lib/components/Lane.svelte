@@ -14,14 +14,16 @@
     on:drop={onDrop}
   >
     <h2>{title}</h2>
-    {#each items as item (item)}
+    {#each items as item (item.id)}
       <article
         draggable="true"
         on:dragstart={(event) => onDragStart(item, event)}
         class="p-4 bg-pink-200 cursor-grab"
         animate:flip
       >
-        {item}
+        <strong>{item.title}</strong><br />
+        Priority: {item.priority}<br />
+        Due: {item.dueDate}
       </article>
     {/each}
   </section>

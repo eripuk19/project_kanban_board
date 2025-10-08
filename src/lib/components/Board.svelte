@@ -1,80 +1,102 @@
 <script>
     import Lane from './Lane.svelte';
     import Assignment from './Assignment.svelte';
+    import { onMount } from 'svelte';
   
     let assignmentRef;
   
-    // Initial tasks for each lane
+    const STORAGE_KEY = 'kanban-board-state';
+  
+    // Prioritäten Reihenfolge für Sortierung
+    const priorityOrder = { 'Critical': 1, 'High': 2, 'Medium': 3, 'Low': 4 };
+  
+    // Initial leer — wird aus localStorage geladen oder default gesetzt
     let Do = [];
     let Doing = [];
     let Done = [];
     let Archive = [];
   
-    function handleDragStart(item, event) {
-      event.dataTransfer.setData("text/plain", item.id);
+    // Lädt gespeicherten Zustand
+    onMount(() => {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const data = JSON.parse(saved);
+        Do = data.Do || [];
+        Doing = data.Doing || [];
+        Done = data.Done || [];
+        Archive = data.Archive || [];
+      } else {
+        // Default-Daten wenn noch nichts gespeichert ist
+        Do = [];
+        Doing = [];
+        Done = [];
+        Archive = [];
+      }
+    });
+  
+    // Speichert aktuellen Zustand in localStorage
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ Do, Doing, Done, Archive }));
     }
   
-    function dragOver(event) {
-      event.preventDefault();
-    }
+    // Aufgaben aus allen Lanes zusammen (Hilfsarray)
+    $: allTasks = [...Do, ...Doing, ...Done, ...Archive];
   
-    function dropToDo(event) {
-      let itemId = parseInt(event.dataTransfer.getData("text/plain"), 10);
-      moveItemToLane(itemId, 'Do');
-    }
-  
-    function dropToDoing(event) {
-      let itemId = parseInt(event.dataTransfer.getData("text/plain"), 10);
-      moveItemToLane(itemId, 'Doing');
-    }
-  
-    function dropToDone(event) {
-      let itemId = parseInt(event.dataTransfer.getData("text/plain"), 10);
-      moveItemToLane(itemId, 'Done');
-    }
-  
-    function dropToArchive(event) {
-      let itemId = parseInt(event.dataTransfer.getData("text/plain"), 10);
-      moveItemToLane(itemId, 'Archive');
-    }
-  
-    // Helper function to find and move tasks between lanes
+    // Hilfsfunktion zum Verschieben von Tasks
     function moveItemToLane(itemId, targetLane) {
-      // Remove from all lanes
+      // Task aus allen Lanes entfernen
       Do = Do.filter(i => i.id !== itemId);
       Doing = Doing.filter(i => i.id !== itemId);
       Done = Done.filter(i => i.id !== itemId);
       Archive = Archive.filter(i => i.id !== itemId);
   
-      // Find the task object (search from all lanes including removed)
+      // Task finden (im vorherigen allTasks)
       let item = allTasks.find(i => i.id === itemId);
-  
       if (!item) return;
   
-      // Add to target lane
+      // Task zum Ziel-Lane hinzufügen
       if (targetLane === 'Do') Do = [...Do, item];
       else if (targetLane === 'Doing') Doing = [...Doing, item];
       else if (targetLane === 'Done') Done = [...Done, item];
       else if (targetLane === 'Archive') Archive = [...Archive, item];
+  
+      saveState(); // Zustand speichern
     }
   
-    // We maintain a combined array to help searching for tasks
-    $: allTasks = [...Do, ...Doing, ...Done, ...Archive];
-  
-    // Open the assignment dialog
-    function openAssignmentDialog() {
-      assignmentRef.open();
+    // Drag & Drop Funktionen
+    function handleDragStart(item, event) {
+      event.dataTransfer.setData("text/plain", item.id);
+    }
+    function dragOver(event) {
+      event.preventDefault();
+    }
+    function dropToDo(event) {
+      let itemId = parseInt(event.dataTransfer.getData("text/plain"), 10);
+      moveItemToLane(itemId, 'Do');
+    }
+    function dropToDoing(event) {
+      let itemId = parseInt(event.dataTransfer.getData("text/plain"), 10);
+      moveItemToLane(itemId, 'Doing');
+    }
+    function dropToDone(event) {
+      let itemId = parseInt(event.dataTransfer.getData("text/plain"), 10);
+      moveItemToLane(itemId, 'Done');
+    }
+    function dropToArchive(event) {
+      let itemId = parseInt(event.dataTransfer.getData("text/plain"), 10);
+      moveItemToLane(itemId, 'Archive');
     }
   
-    // When a new issue is created, add it to Do lane and sort Do lane by priority
-    const priorityOrder = { 'Critical': 1, 'High': 2, 'Medium': 3, 'Low': 4 };
-  
+    // Neues Issue hinzufügen: immer in Do lane und sortieren
     function handleSubmit(event) {
       const newIssue = event.detail;
       Do = [...Do, newIssue];
-  
-      // Sort Do by priority order
       Do.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+      saveState(); // Zustand speichern
+    }
+  
+    function openAssignmentDialog() {
+      assignmentRef.open();
     }
   </script>
   

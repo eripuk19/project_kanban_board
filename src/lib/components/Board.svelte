@@ -30,13 +30,8 @@
         Archive = data.Archive || [];
       } else {
         // Optional: start with dummy data
-        Do = [
-          { id: 1, title: 'Task 1', priority: 'Medium', dueDate: '2025-10-10' },
-          { id: 2, title: 'Task 2', priority: 'Low', dueDate: '2025-10-15' }
-        ];
-        Doing = [
-          { id: 3, title: 'Task 3', priority: 'High', dueDate: '2025-10-08' },
-        ];
+        Do = [];
+        Doing = [];
         Done = [];
         Archive = [];
       }

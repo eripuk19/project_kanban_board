@@ -19,8 +19,8 @@
   let Done = [];
   let Archive = [];
 
-  // Load saved state from localStorage on app start
   onMount(() => {
+    // Load saved state
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const data = JSON.parse(saved);
@@ -29,11 +29,15 @@
       Done = data.Done || [];
       Archive = data.Archive || [];
     } else {
-      // Optional: start with dummy data
       Do = [];
       Doing = [];
       Done = [];
       Archive = [];
+    }
+
+    // Request Notification permission
+    if ("Notification" in window && Notification.permission !== "granted") {
+      Notification.requestPermission();
     }
   });
 
@@ -43,11 +47,18 @@
 
   $: allTasks = [...Do, ...Doing, ...Done, ...Archive];
 
-  // Sum of story points per lane
+  // Sum of story points per lane (optional, you can keep or remove)
   $: sumDo = Do.reduce((acc, task) => acc + Number(task.storyPoints || 0), 0);
   $: sumDoing = Doing.reduce((acc, task) => acc + Number(task.storyPoints || 0), 0);
   $: sumDone = Done.reduce((acc, task) => acc + Number(task.storyPoints || 0), 0);
   $: sumArchive = Archive.reduce((acc, task) => acc + Number(task.storyPoints || 0), 0);
+
+  // Show native notification
+  function showNativeNotification(title, body) {
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification(title, { body });
+    }
+  }
 
   // Move task to a lane and sort by priority
   function moveItemToLane(itemId, targetLane) {
@@ -65,8 +76,10 @@
       Doing = [...Doing, item].sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
     } else if (targetLane === 'Done') {
       Done = [...Done, item].sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+      // Native notification on move to Done
+      showNativeNotification("Task Completed ✅", `Task "${item.title}" was moved to Done.`);
     } else if (targetLane === 'Archive') {
-      Archive = [...Archive, item]; // Archive doesn't need sorting
+      Archive = [...Archive, item];
     }
 
     saveState();

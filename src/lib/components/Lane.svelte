@@ -25,6 +25,13 @@
   function deleteIssue(item) {
     dispatch('deleteIssue', item.id);
   }
+
+  function isOverdue(dueDate) {
+    if (!dueDate) return false;
+    const today = new Date();
+    const due = new Date(dueDate);
+    return today > due;
+  }
 </script>
 
 <section
@@ -41,10 +48,13 @@
     <article
       draggable="true"
       on:dragstart={(event) => onDragStart(item, event)}
-      class="p-4 bg-pink-200 cursor-grab flex flex-col space-y-2"
+      class="p-4 bg-pink-200 cursor-grab flex flex-col space-y-2 relative"
       animate:flip
     >
-      <div>
+      {#if isOverdue(item.dueDate)}
+        <div class="absolute top-0 left-0 h-full w-1 bg-red-600 rounded-r"></div>
+      {/if}
+      <div class="ml-2">
         <strong>{item.title}</strong><br />
         Priority: {item.priority}<br />
         Due: {item.dueDate}<br />

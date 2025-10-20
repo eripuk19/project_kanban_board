@@ -1,5 +1,6 @@
 <script>
   import { flip } from 'svelte/animate';
+  import { createEventDispatcher } from 'svelte';
 
   export let title;
   export let items = [];
@@ -7,6 +8,8 @@
   export let onDragStart;
   export let dragOver;
   export let storyPointsSum = 0;
+
+  const dispatch = createEventDispatcher();
 
   function shareIssue(item) {
     if (navigator.share) {
@@ -17,6 +20,10 @@
     } else {
       alert('Web Share API not supported on this browser.');
     }
+  }
+
+  function deleteIssue(item) {
+    dispatch('deleteIssue', item.id);
   }
 </script>
 
@@ -43,12 +50,20 @@
         Due: {item.dueDate}<br />
         Story Points: {item.storyPoints}
       </div>
-      <button
-        on:click={() => shareIssue(item)}
-        class="mt-2 self-start bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-sm"
-      >
-        📤 Share
-      </button>
+      <div class="flex space-x-2 mt-2">
+        <button
+          on:click={() => shareIssue(item)}
+          class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-sm"
+        >
+          📤 Share
+        </button>
+        <button
+          on:click={() => deleteIssue(item)}
+          class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 text-sm"
+        >
+          🗑 Delete
+        </button>
+      </div>
     </article>
   {/each}
 </section>

@@ -120,6 +120,14 @@
   function openAssignmentDialog() {
     assignmentRef.open();
   }
+
+  function handleDelete(itemId) {
+    Do = Do.filter(i => i.id !== itemId);
+    Doing = Doing.filter(i => i.id !== itemId);
+    Done = Done.filter(i => i.id !== itemId);
+    Archive = Archive.filter(i => i.id !== itemId);
+    saveState();
+  }
 </script>
 
 <h1 class="text-center text-2xl font-bold mb-4">Project Kanban Board</h1>
@@ -138,6 +146,7 @@
     onDragStart={handleDragStart}
     dragOver={dragOver}
     storyPointsSum={sumDo}
+    on:deleteIssue={(e) => handleDelete(e.detail)}
   />
   <Lane
     title="Doing"
@@ -146,6 +155,7 @@
     onDragStart={handleDragStart}
     dragOver={dragOver}
     storyPointsSum={sumDoing}
+    on:deleteIssue={(e) => handleDelete(e.detail)}
   />
   <Lane
     title="Done"
@@ -154,6 +164,7 @@
     onDragStart={handleDragStart}
     dragOver={dragOver}
     storyPointsSum={sumDone}
+    on:deleteIssue={(e) => handleDelete(e.detail)}
   />
   <Lane
     title="Archive"
@@ -162,6 +173,7 @@
     onDragStart={handleDragStart}
     dragOver={dragOver}
     storyPointsSum={sumArchive}
+    on:deleteIssue={(e) => handleDelete(e.detail)}
   />
 </main>
 

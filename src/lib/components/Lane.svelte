@@ -36,7 +36,40 @@
 
   function formatDate(dateStr) {
     if (!dateStr) return '';
-    return format(parseISO(dateStr), 'PPP'); // e.g., "Mon, Oct 20, 2025"
+    return format(parseISO(dateStr), 'PPP');
+  }
+
+  // --- Export item as ICS calendar event ---
+  function exportToCalendar(item) {
+    const startDate = item.creationDate ? new Date(item.creationDate) : new Date();
+    const endDate = item.dueDate ? new Date(item.dueDate) : new Date(startDate.getTime() + 60 * 60 * 1000);
+
+    const formatDateICS = (date) => date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+
+    const icsContent = `
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//YourKanbanBoard//EN
+BEGIN:VEVENT
+UID:${item.id}@kanbanboard
+DTSTAMP:${formatDateICS(new Date())}
+DTSTART:${formatDateICS(startDate)}
+DTEND:${formatDateICS(endDate)}
+SUMMARY:${item.title}
+DESCRIPTION:${item.description || ''}
+PRIORITY:${item.priority === 'Critical' ? 1 : item.priority === 'High' ? 2 : item.priority === 'Medium' ? 3 : 5}
+END:VEVENT
+END:VCALENDAR
+`.trim();
+
+    const blob = new Blob([icsContent], { type: 'text/calendar' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${item.title}.ics`;
+    link.click();
+    URL.revokeObjectURL(url);
   }
 </script>
 
@@ -73,6 +106,12 @@
           class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-sm"
         >
           📤 Share
+        </button>
+        <button
+          on:click={() => exportToCalendar(item)}
+          class="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 text-sm"
+        >
+          📅 Export
         </button>
         <button
           on:click={() => deleteIssue(item)}

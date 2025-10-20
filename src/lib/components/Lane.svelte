@@ -1,6 +1,7 @@
 <script>
   import { flip } from 'svelte/animate';
   import { createEventDispatcher } from 'svelte';
+  import { format, parseISO, isAfter } from 'date-fns';
 
   export let title;
   export let items = [];
@@ -15,7 +16,7 @@
     if (navigator.share) {
       navigator.share({
         title: item.title,
-        text: `Issue: ${item.title}\nDescription: ${item.description}\nDue: ${item.dueDate}\nStory Points: ${item.storyPoints}\nPriority: ${item.priority}`,
+        text: `Issue: ${item.title}\nDescription: ${item.description}\nDue: ${format(parseISO(item.dueDate), 'PPP')}\nStory Points: ${item.storyPoints}\nPriority: ${item.priority}`,
       }).catch(err => console.error('Error sharing:', err));
     } else {
       alert('Web Share API not supported on this browser.');
@@ -29,8 +30,13 @@
   function isOverdue(dueDate) {
     if (!dueDate) return false;
     const today = new Date();
-    const due = new Date(dueDate);
-    return today > due;
+    const due = parseISO(dueDate);
+    return isAfter(today, due);
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return '';
+    return format(parseISO(dateStr), 'PPP'); // e.g., "Mon, Oct 20, 2025"
   }
 </script>
 
@@ -48,7 +54,7 @@
     <article
       draggable="true"
       on:dragstart={(event) => onDragStart(item, event)}
-      class="p-4 bg-pink-200 cursor-grab flex flex-col space-y-2 relative"
+      class="p-4 bg-pink-300 cursor-grab flex flex-col space-y-2 relative"
       animate:flip
     >
       {#if isOverdue(item.dueDate)}
@@ -57,7 +63,8 @@
       <div class="ml-2">
         <strong>{item.title}</strong><br />
         Priority: {item.priority}<br />
-        Due: {item.dueDate}<br />
+        Due: {formatDate(item.dueDate)}<br />
+        Creation: {formatDate(item.creationDate)}<br />
         Story Points: {item.storyPoints}
       </div>
       <div class="flex space-x-2 mt-2">

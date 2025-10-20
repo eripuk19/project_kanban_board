@@ -1,12 +1,12 @@
 <script>
   import Lane from './Lane.svelte';
   import Assignment from './Assignment.svelte';
-  import { onMount } from 'svelte';
+  import { onMount, createEventDispatcher } from 'svelte';
 
+  const dispatch = createEventDispatcher();
   let assignmentRef;
   const STORAGE_KEY = 'kanban-board-state';
 
-  // Priority sorting order
   const priorityOrder = {
     'Critical': 1,
     'High': 2,
@@ -20,7 +20,6 @@
   let Archive = [];
 
   onMount(() => {
-    // Load saved state
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const data = JSON.parse(saved);
@@ -35,32 +34,30 @@
       Archive = [];
     }
 
-    // Request Notification permission
     if ("Notification" in window && Notification.permission !== "granted") {
       Notification.requestPermission();
     }
+
+    dispatchUpdatedAssignments();
   });
 
   function saveState() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ Do, Doing, Done, Archive }));
+    dispatchUpdatedAssignments();
   }
 
   $: allTasks = [...Do, ...Doing, ...Done, ...Archive];
-
-  // Sum of story points per lane (optional, you can keep or remove)
   $: sumDo = Do.reduce((acc, task) => acc + Number(task.storyPoints || 0), 0);
   $: sumDoing = Doing.reduce((acc, task) => acc + Number(task.storyPoints || 0), 0);
   $: sumDone = Done.reduce((acc, task) => acc + Number(task.storyPoints || 0), 0);
   $: sumArchive = Archive.reduce((acc, task) => acc + Number(task.storyPoints || 0), 0);
 
-  // Show native notification
   function showNativeNotification(title, body) {
     if ("Notification" in window && Notification.permission === "granted") {
       new Notification(title, { body });
     }
   }
 
-  // Move task to a lane and sort by priority
   function moveItemToLane(itemId, targetLane) {
     Do = Do.filter(i => i.id !== itemId);
     Doing = Doing.filter(i => i.id !== itemId);
@@ -70,22 +67,22 @@
     const item = allTasks.find(i => i.id === itemId);
     if (!item) return;
 
-    if (targetLane === 'Do') {
-      Do = [...Do, item].sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
-    } else if (targetLane === 'Doing') {
-      Doing = [...Doing, item].sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
-    } else if (targetLane === 'Done') {
+    if (targetLane === 'Do') Do = [...Do, item].sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+    else if (targetLane === 'Doing') Doing = [...Doing, item].sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+    else if (targetLane === 'Done') {
       Done = [...Done, item].sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
-      // Native notification on move to Done
       showNativeNotification("Task Completed ✅", `Task "${item.title}" was moved to Done.`);
-    } else if (targetLane === 'Archive') {
-      Archive = [...Archive, item];
     }
+    else if (targetLane === 'Archive') Archive = [...Archive, item];
 
     saveState();
   }
 
-  // Drag-and-drop functions
+  function dispatchUpdatedAssignments() {
+    const allIssues = [...Do, ...Doing, ...Done, ...Archive];
+    dispatch('updateAssignments', allIssues);
+  }
+
   function handleDragStart(item, event) {
     event.dataTransfer.setData("text/plain", item.id);
   }
@@ -114,7 +111,6 @@
     moveItemToLane(itemId, 'Archive');
   }
 
-  // Add new issue (from Assignment dialog)
   function handleSubmit(event) {
     const newIssue = event.detail;
     Do = [...Do, newIssue].sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);

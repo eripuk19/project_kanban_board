@@ -74,7 +74,7 @@ END:VCALENDAR
 </script>
 
 <section
-  class="p-3 bg-white h-[550px] w-[300px] space-y-2"
+  class="p-3 bg-white h-[550px] w-[300px] space-y-2 overflow-y-auto"
   on:dragover={dragOver}
   on:drop={onDrop}
 >

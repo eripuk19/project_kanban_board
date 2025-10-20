@@ -19,7 +19,22 @@
   let Done = [];
   let Archive = [];
 
+  // --- Country detection ---
+  let country = 'Loading...';
+
+  async function fetchCountry() {
+    try {
+      const res = await fetch('https://ipapi.co/json/');
+      const data = await res.json();
+      country = data.country_name || 'Unknown';
+    } catch (err) {
+      console.error('Error fetching country:', err);
+      country = 'Unknown';
+    }
+  }
+
   onMount(() => {
+    // Load saved state
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const data = JSON.parse(saved);
@@ -27,18 +42,15 @@
       Doing = data.Doing || [];
       Done = data.Done || [];
       Archive = data.Archive || [];
-    } else {
-      Do = [];
-      Doing = [];
-      Done = [];
-      Archive = [];
     }
 
+    // Notification permission
     if ("Notification" in window && Notification.permission !== "granted") {
       Notification.requestPermission();
     }
 
     dispatchUpdatedAssignments();
+    fetchCountry(); // fetch country on mount
   });
 
   function saveState() {
@@ -178,3 +190,9 @@
 </main>
 
 <Assignment bind:this={assignmentRef} on:submit={handleSubmit} />
+
+<footer class="w-full bg-pink-600 text-white text-center py-4 mt-4 rounded-t-lg shadow-lg">
+  <p class="text-lg font-semibold">
+    🌍 Your country: {country}
+  </p>
+</footer>

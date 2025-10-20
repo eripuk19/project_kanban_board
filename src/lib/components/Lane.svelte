@@ -7,9 +7,19 @@
   export let onDragStart;
   export let dragOver;
   export let storyPointsSum = 0;
+
+  function shareIssue(item) {
+    if (navigator.share) {
+      navigator.share({
+        title: item.title,
+        text: `Issue: ${item.title}\nDescription: ${item.description}\nDue: ${item.dueDate}\nStory Points: ${item.storyPoints}\nPriority: ${item.priority}`,
+      }).catch(err => console.error('Error sharing:', err));
+    } else {
+      alert('Web Share API not supported on this browser.');
+    }
+  }
 </script>
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
 <section
   class="p-3 bg-white h-[550px] w-[300px] space-y-2"
   on:dragover={dragOver}
@@ -24,13 +34,21 @@
     <article
       draggable="true"
       on:dragstart={(event) => onDragStart(item, event)}
-      class="p-4 bg-pink-200 cursor-grab"
+      class="p-4 bg-pink-200 cursor-grab flex flex-col space-y-2"
       animate:flip
     >
-      <strong>{item.title}</strong><br />
-      Priority: {item.priority}<br />
-      Due: {item.dueDate}<br />
-      Story Points: {item.storyPoints}
+      <div>
+        <strong>{item.title}</strong><br />
+        Priority: {item.priority}<br />
+        Due: {item.dueDate}<br />
+        Story Points: {item.storyPoints}
+      </div>
+      <button
+        on:click={() => shareIssue(item)}
+        class="mt-2 self-start bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-sm"
+      >
+        📤 Share
+      </button>
     </article>
   {/each}
 </section>

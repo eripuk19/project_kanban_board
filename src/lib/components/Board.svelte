@@ -1,7 +1,7 @@
 <script>
   import Lane from './Lane.svelte';
   import Assignment from './Assignment.svelte';
-  import Footer from './Footer.svelte'; // import footer component
+  import Footer from './Footer.svelte';
   import { onMount, createEventDispatcher } from 'svelte';
 
   const dispatch = createEventDispatcher();
@@ -19,9 +19,9 @@
   let Doing = [];
   let Done = [];
   let Archive = [];
+  let assignments = []; // track all items for CSV export
 
   onMount(() => {
-    // Load saved state
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const data = JSON.parse(saved);
@@ -31,7 +31,6 @@
       Archive = data.Archive || [];
     }
 
-    // Notification permission
     if ("Notification" in window && Notification.permission !== "granted") {
       Notification.requestPermission();
     }
@@ -78,6 +77,7 @@
 
   function dispatchUpdatedAssignments() {
     const allIssues = [...Do, ...Doing, ...Done, ...Archive];
+    assignments = allIssues;
     dispatch('updateAssignments', allIssues);
   }
 
@@ -126,13 +126,52 @@
     Archive = Archive.filter(i => i.id !== itemId);
     saveState();
   }
+
+  function exportToCSV() {
+    if (!assignments || assignments.length === 0) {
+      alert('No items to export.');
+      return;
+    }
+
+    const headers = ['Title', 'Description', 'Creation Date', 'Due Date', 'Story Points', 'Priority'];
+    const rows = assignments.map(a => [
+      a.title,
+      a.description,
+      a.creationDate,
+      a.dueDate,
+      a.storyPoints,
+      a.priority
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(v => `"${String(v || '').replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'kanban_items.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  }
 </script>
 
 <h1 class="text-center text-2xl font-bold mb-4">Project Kanban Board</h1>
 
-<div class="text-center mb-4">
-  <button on:click={openAssignmentDialog} class="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700">
+<!-- Add New Issue + Export CSV side by side -->
+<div class="text-center mb-4 flex justify-center space-x-4">
+  <button
+    on:click={openAssignmentDialog}
+    class="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700 transition"
+  >
     ➕ Add New Issue
+  </button>
+  <button
+    on:click={exportToCSV}
+    class="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700 transition"
+  >
+    📤 Export as CSV
   </button>
 </div>
 
@@ -176,6 +215,5 @@
 </main>
 
 <Assignment bind:this={assignmentRef} on:submit={handleSubmit} />
-
 
 <Footer />

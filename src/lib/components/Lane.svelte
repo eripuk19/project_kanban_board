@@ -103,19 +103,19 @@ END:VCALENDAR
       <div class="flex space-x-2 mt-2">
         <button
           on:click={() => shareIssue(item)}
-          class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-sm"
+          class="bg-pink-500 text-white px-2 py-1 rounded hover:bg-pink-600 text-sm"
         >
           📤 Share
         </button>
         <button
           on:click={() => exportToCalendar(item)}
-          class="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 text-sm"
+          class="bg-pink-500 text-white px-2 py-1 rounded hover:bg-pink-600 text-sm"
         >
           📅 Export
         </button>
         <button
           on:click={() => deleteIssue(item)}
-          class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 text-sm"
+          class="bg-pink-500 text-white px-2 py-1 rounded hover:bg-pink-600 text-sm"
         >
           🗑 Delete
         </button>

@@ -19,7 +19,7 @@
   let Doing = [];
   let Done = [];
   let Archive = [];
-  let assignments = []; // track all items for CSV export
+  let assignments = [];
 
   onMount(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -44,10 +44,10 @@
   }
 
   $: allTasks = [...Do, ...Doing, ...Done, ...Archive];
-  $: sumDo = Do.reduce((acc, task) => acc + Number(task.storyPoints || 0), 0);
-  $: sumDoing = Doing.reduce((acc, task) => acc + Number(task.storyPoints || 0), 0);
-  $: sumDone = Done.reduce((acc, task) => acc + Number(task.storyPoints || 0), 0);
-  $: sumArchive = Archive.reduce((acc, task) => acc + Number(task.storyPoints || 0), 0);
+  $: sumDo = Do.reduce((acc, t) => acc + Number(t.storyPoints || 0), 0);
+  $: sumDoing = Doing.reduce((acc, t) => acc + Number(t.storyPoints || 0), 0);
+  $: sumDone = Done.reduce((acc, t) => acc + Number(t.storyPoints || 0), 0);
+  $: sumArchive = Archive.reduce((acc, t) => acc + Number(t.storyPoints || 0), 0);
 
   function showNativeNotification(title, body) {
     if ("Notification" in window && Notification.permission === "granted") {
@@ -69,8 +69,7 @@
     else if (targetLane === 'Done') {
       Done = [...Done, item].sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
       showNativeNotification("Task Completed ✅", `Task "${item.title}" was moved to Done.`);
-    }
-    else if (targetLane === 'Archive') Archive = [...Archive, item];
+    } else if (targetLane === 'Archive') Archive = [...Archive, item];
 
     saveState();
   }
@@ -157,25 +156,30 @@
   }
 </script>
 
-<h1 class="text-center text-2xl font-bold mb-4">Project Kanban Board</h1>
+<!-- Page Header -->
+<section class="bg-gradient-to-r from-pink-100 via-pink-50 to-pink-100 py-8 px-6 shadow-sm rounded-b-2xl border-b border-pink-200">
+  <h1 class="text-center text-3xl font-extrabold text-gray-800 mb-6">
+    Project Kanban Board
+  </h1>
 
-<!-- Add New Issue + Export CSV side by side -->
-<div class="text-center mb-4 flex justify-center space-x-4">
-  <button
-    on:click={openAssignmentDialog}
-    class="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700 transition"
-  >
-    ➕ Add New Issue
-  </button>
-  <button
-    on:click={exportToCSV}
-    class="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700 transition"
-  >
-    📤 Export as CSV
-  </button>
-</div>
+  <div class="flex justify-center gap-4">
+    <button
+      on:click={openAssignmentDialog}
+      class="flex items-center gap-2 bg-pink-600 hover:bg-pink-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow transition-all"
+    >
+      ➕ Add New Issue
+    </button>
+    <button
+      on:click={exportToCSV}
+      class="flex items-center gap-2 bg-pink-500 hover:bg-pink-600 text-white font-semibold px-5 py-2.5 rounded-xl shadow transition-all"
+    >
+      📤 Export as CSV
+    </button>
+  </div>
+</section>
 
-<main class="p-8 w-full bg-pink-400 h-[700px] flex justify-between items-start overflow-x-auto">
+<!-- Main Board Area -->
+<main class="p-8 min-h-[700px] bg-gradient-to-br from-pink-50 to-pink-100 flex justify-center gap-6 overflow-x-auto">
   <Lane
     title="Do"
     items={Do}
@@ -203,20 +207,29 @@
     storyPointsSum={sumDone}
     on:deleteIssue={(e) => handleDelete(e.detail)}
   />
-  <div class="relative">
-    <Lane
-      title="Archive"
-      items={Archive}
-      onDrop={dropToArchive}
-      onDragStart={handleDragStart}
-      dragOver={dragOver}
-      storyPointsSum={sumArchive}
-      on:deleteIssue={(e) => handleDelete(e.detail)}
-    />
-    <div class="absolute inset-0 bg-gray-200 opacity-40 pointer-events-none rounded"></div>
-  </div>
+  <Lane
+    title="Archive"
+    items={Archive}
+    onDrop={dropToArchive}
+    onDragStart={handleDragStart}
+    dragOver={dragOver}
+    storyPointsSum={sumArchive}
+    on:deleteIssue={(e) => handleDelete(e.detail)}
+  />
 </main>
 
 <Assignment bind:this={assignmentRef} on:submit={handleSubmit} />
-
 <Footer />
+
+<style>
+  main::-webkit-scrollbar {
+    height: 10px;
+  }
+  main::-webkit-scrollbar-thumb {
+    background-color: #f472b6;
+    border-radius: 9999px;
+  }
+  main::-webkit-scrollbar-track {
+    background-color: #fce7f3;
+  }
+</style>

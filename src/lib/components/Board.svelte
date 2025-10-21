@@ -175,7 +175,7 @@
   </button>
 </div>
 
-<main class="p-8 w-full bg-pink-400 h-[700px] flex justify-between items-start">
+<main class="p-8 w-full bg-pink-400 h-[700px] flex justify-between items-start overflow-x-auto">
   <Lane
     title="Do"
     items={Do}
@@ -203,15 +203,18 @@
     storyPointsSum={sumDone}
     on:deleteIssue={(e) => handleDelete(e.detail)}
   />
-  <Lane
-    title="Archive"
-    items={Archive}
-    onDrop={dropToArchive}
-    onDragStart={handleDragStart}
-    dragOver={dragOver}
-    storyPointsSum={sumArchive}
-    on:deleteIssue={(e) => handleDelete(e.detail)}
-  />
+  <div class="relative">
+    <Lane
+      title="Archive"
+      items={Archive}
+      onDrop={dropToArchive}
+      onDragStart={handleDragStart}
+      dragOver={dragOver}
+      storyPointsSum={sumArchive}
+      on:deleteIssue={(e) => handleDelete(e.detail)}
+    />
+    <div class="absolute inset-0 bg-gray-200 opacity-40 pointer-events-none rounded"></div>
+  </div>
 </main>
 
 <Assignment bind:this={assignmentRef} on:submit={handleSubmit} />
